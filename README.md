@@ -1,3 +1,9 @@
+<p align="center">
+  <img src="assets/true-handshake.jpg"
+       alt="Two hands meeting in a handshake, drawn in bright pop-art colours"
+       width="320">
+</p>
+
 # True Handshake
 
 **An AI witness for two-party deals, and a receipt anyone can verify.**
@@ -31,6 +37,15 @@ From that, the witness produces:
 That ladder is the point. Any escrow can record "both parties agreed to $40".
 True Handshake records how they got there, attributed and quoted, so the receipt
 is worth more than a checkbox.
+
+And this is what both parties see before anything binds — the ladder, the
+witness's own caveats, and two confirmations that have to arrive separately:
+
+<p align="center">
+  <img src="assets/deal-screen.png"
+       alt="The confirmation screen: what the witness heard, its caveats, the agreement, and who has confirmed"
+       width="420">
+</p>
 
 ---
 
