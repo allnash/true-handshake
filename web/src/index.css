@@ -1,42 +1,52 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   BRAND PALETTE
+   BRAND PALETTE — the five, used literally.
    ═══════════════════════════════════════════════════════════════════════════
-   F1D545  golden yellow    →  --color-warn    the witness is unsure
-   630C71  deep purple      →  --color-plum    surfaces, cards, borders
-   18EDE8  electric cyan    →  --color-cyan    countdowns, escrow, links
-   C5F3C8  pale mint        →  --color-good    confirmed, verified, sealed
-   B319B4  magenta          →  --color-seal    primary action, the seal
+   630C71  deep purple    →  the page itself, and every surface on it
+   C5F3C8  pale mint      →  text, and the "verified" seal
+   18EDE8  electric cyan  →  primary action, countdowns, links, focus
+   F1D545  golden yellow  →  the witness is unsure, windows elapsing
+   B319B4  magenta        →  the mark, and disputes
 
-   Two colours are derived rather than sampled, and here's why:
+   Everything else on screen is a mix of two of these — surfaces are the purple
+   lifted toward the mint, muted text is the mint pulled toward the purple. No
+   sixth hue is introduced anywhere.
 
-   - `--color-ink` is 630C71 taken down to a near-black. A full page of
-     saturated purple fights every other colour in the set; deepening it keeps
-     the hue and gives the palette room to sing on top.
-   - `--color-bad` is added. The palette has no red, and "your money is frozen
-     pending a dispute" cannot honestly be said in yellow.
+   One consequence worth knowing: magenta on the purple ground is only ~2:1, far
+   below readable. So magenta never appears as body text — it appears as a fill
+   (with mint on top, ~4.7:1), and danger *text* uses a mint-lifted magenta that
+   clears 5:1 while staying unmistakably in the same family.
    ═══════════════════════════════════════════════════════════════════════════ */
 @theme {
   --color-plum: #630c71;
+  --color-mint: #c5f3c8;
   --color-cyan: #18ede8;
-  --color-good: #c5f3c8;
-  --color-warn: #f1d545;
-  --color-seal: #b319b4;
-
-  --color-ink: #12021a; /* derived: 630C71, deepened            */
-  --color-paper: #f2f7f3; /* derived: C5F3C8, lifted to near-white */
-  --color-bad: #ff4d6d; /* added: the palette has no danger red  */
+  --color-gold: #f1d545;
+  --color-magenta: #b319b4;
 }
 
-/* Surfaces are lifted toward the plum rather than toward grey, so cards read
-   as part of the palette instead of sitting on top of it. */
 @theme {
-  --color-surface: color-mix(in oklab, var(--color-ink) 86%, var(--color-plum));
-  --color-raised: color-mix(in oklab, var(--color-ink) 74%, var(--color-plum));
-  --color-line: color-mix(in oklab, var(--color-ink) 52%, var(--color-plum));
-  --color-muted: color-mix(in oklab, var(--color-ink) 40%, var(--color-paper));
-  --color-faint: color-mix(in oklab, var(--color-ink) 62%, var(--color-paper));
+  /* The purple is the *cards*, not the whole screen. Painting the page 630C71
+     and then stacking purple cards on it left one hue everywhere and drowned the
+     other four; on a deeper ground the palette's purple reads as a surface you
+     can see, and the brights have somewhere to land. */
+  --color-ink: color-mix(in oklab, var(--color-plum) 42%, #000);
+  --color-surface: var(--color-plum);
+  --color-raised: color-mix(in oklab, var(--color-plum) 86%, var(--color-mint));
+  --color-line: color-mix(in oklab, var(--color-plum) 70%, var(--color-mint));
+
+  /* Text: mint, pulled fractionally toward the purple so the pure value stays
+     available as a highlight for confirmed and verified states. */
+  --color-paper: color-mix(in oklab, var(--color-mint) 90%, var(--color-plum));
+  --color-muted: color-mix(in oklab, var(--color-mint) 66%, var(--color-plum));
+  --color-faint: color-mix(in oklab, var(--color-mint) 70%, var(--color-plum));
+
+  /* Semantics, all five accounted for. */
+  --color-seal: var(--color-magenta);
+  --color-good: var(--color-mint);
+  --color-warn: var(--color-gold);
+  --color-bad: color-mix(in oklab, var(--color-magenta) 36%, var(--color-mint));
 
   --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -73,14 +83,14 @@ body::before {
   pointer-events: none;
   background: repeating-conic-gradient(
     from 0deg at 50% -8%,
-    color-mix(in oklab, var(--color-seal) 30%, transparent) 0deg 1.4deg,
+    color-mix(in oklab, var(--color-magenta) 55%, transparent) 0deg 1.4deg,
     transparent 1.4deg 5deg,
-    color-mix(in oklab, var(--color-cyan) 22%, transparent) 5deg 6.2deg,
+    color-mix(in oklab, var(--color-cyan) 34%, transparent) 5deg 6.2deg,
     transparent 6.2deg 10deg
   );
   mask-image: radial-gradient(100% 42% at 50% 0%, #000 0%, transparent 75%);
   -webkit-mask-image: radial-gradient(100% 42% at 50% 0%, #000 0%, transparent 75%);
-  opacity: 0.5;
+  opacity: 0.75;
 }
 
 #root {

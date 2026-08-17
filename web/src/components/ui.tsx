@@ -63,12 +63,13 @@ export function Button({
   const base =
     "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold transition-all active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100";
   const styles = {
-    // Magenta on near-white clears AA; magenta on the dark ink does not.
+    // Cyan on the purple ground is 8.4:1; magenta on it is 2:1, so magenta
+    // carries meaning as a fill and never as text.
     primary:
       "bg-seal text-paper shadow-[0_0_24px_-6px_var(--color-seal)] hover:brightness-110",
-    cyan: "bg-cyan text-ink shadow-[0_0_24px_-6px_var(--color-cyan)] hover:brightness-110",
+    cyan: "bg-magenta text-mint shadow-[0_0_24px_-6px_var(--color-magenta)] hover:brightness-110",
     ghost: "border border-line bg-raised/60 text-paper hover:border-cyan/60",
-    danger: "border border-bad/40 bg-bad/10 text-bad hover:bg-bad/20",
+    danger: "bg-magenta text-mint hover:brightness-110",
   }[variant];
 
   return (
