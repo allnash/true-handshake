@@ -1,0 +1,16 @@
+# Secrets. The signing seed matters as much as the API key: whoever holds it can
+# forge attestations, and losing it invalidates every receipt already issued.
+.env
+*.pem
+*.key
+
+# Rust
+/target
+
+# Node
+web/node_modules
+web/dist
+web/*.tsbuildinfo
+
+# macOS
+.DS_Store

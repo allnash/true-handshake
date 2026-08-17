@@ -1,0 +1,13 @@
+[package]
+name = "th-jobs"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+th-domain = { workspace = true }
+th-app = { workspace = true }
+
+tokio = { workspace = true }
+tracing = { workspace = true }
+time = { workspace = true }
