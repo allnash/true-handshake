@@ -27,20 +27,24 @@
 }
 
 @theme {
-  /* The purple is the *cards*, not the whole screen. Painting the page 630C71
-     and then stacking purple cards on it left one hue everywhere and drowned the
-     other four; on a deeper ground the palette's purple reads as a surface you
-     can see, and the brights have somewhere to land. */
-  --color-ink: color-mix(in oklab, var(--color-plum) 42%, #000);
-  --color-surface: var(--color-plum);
-  --color-raised: color-mix(in oklab, var(--color-plum) 86%, var(--color-mint));
-  --color-line: color-mix(in oklab, var(--color-plum) 70%, var(--color-mint));
+  /* The purple is structure, not substrate.
+     Two earlier attempts got this wrong in both directions: a near-black page
+     that owed nothing to the palette, then a page painted 630C71 with purple
+     cards on it, which was purple everywhere and drowned the other four.
+     Here the purple recedes into the ground and rises only where it does work —
+     borders, the ladder spine, badge backing — so the screen reads dark and the
+     mint, cyan, gold and magenta carry it. That is also how the brand
+     illustration is built: dark corners, blazing rays. */
+  --color-ink: color-mix(in oklab, var(--color-plum) 16%, #000);
+  --color-surface: color-mix(in oklab, var(--color-plum) 26%, #000);
+  --color-raised: color-mix(in oklab, var(--color-plum) 38%, #000);
+  --color-line: color-mix(in oklab, var(--color-plum) 62%, #000);
 
   /* Text: mint, pulled fractionally toward the purple so the pure value stays
      available as a highlight for confirmed and verified states. */
   --color-paper: color-mix(in oklab, var(--color-mint) 90%, var(--color-plum));
-  --color-muted: color-mix(in oklab, var(--color-mint) 66%, var(--color-plum));
-  --color-faint: color-mix(in oklab, var(--color-mint) 70%, var(--color-plum));
+  --color-muted: color-mix(in oklab, var(--color-mint) 60%, var(--color-plum));
+  --color-faint: color-mix(in oklab, var(--color-mint) 50%, var(--color-plum));
 
   /* Semantics, all five accounted for. */
   --color-seal: var(--color-magenta);
