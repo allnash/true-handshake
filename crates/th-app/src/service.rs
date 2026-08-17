@@ -169,6 +169,13 @@ impl Handshake {
         };
         let extraction = self.witness.extract(&session.transcript, &ctx).await?;
         let transcript_hash = canonical::canonical_hash(&session.transcript)?;
+        // Captured before the extraction is moved into the command: the witness
+        // has just worked out who is buying, and the deal's party labels have to
+        // follow, or the UI tells Nash he is "Voice A".
+        let (buyer, seller) = (
+            extraction.buyer_speaker.clone(),
+            extraction.seller_speaker.clone(),
+        );
 
         let result = self
             .apply(
@@ -185,8 +192,24 @@ impl Handshake {
             )
             .await?;
 
+        self.sync_party_names(session.deal_id, &buyer, &seller).await;
         self.sessions.close(session_id).await?;
         Ok(result)
+    }
+
+    /// Point the deal's party labels at the names the witness read.
+    ///
+    /// These are display labels, not identity: which side of the deal a token
+    /// speaks for was fixed when the session opened, and the conversation
+    /// decides which of those sides is buying. Best-effort on purpose — a
+    /// failure here must not undo a proposal that is already attested.
+    async fn sync_party_names(&self, deal_id: DealId, buyer: &str, seller: &str) {
+        if buyer.trim().is_empty() || seller.trim().is_empty() {
+            return;
+        }
+        if let Err(e) = self.deals.rename_parties(deal_id, buyer, seller).await {
+            warn!(deal_id = %deal_id, error = %e, "could not update party labels");
+        }
     }
 
     /// Store a recording of the session and commit to its digest.
@@ -303,14 +326,19 @@ impl Handshake {
         terms: Terms,
     ) -> Result<CommandResult> {
         let actor = self.actor_for(deal_id, token).await?;
-        self.apply(
-            deal_id,
-            DealCommand::CorrectTerms {
-                terms: Box::new(terms),
-            },
-            actor,
-        )
-        .await
+        let (buyer, seller) = (terms.buyer_name.clone(), terms.seller_name.clone());
+        let result = self
+            .apply(
+                deal_id,
+                DealCommand::CorrectTerms {
+                    terms: Box::new(terms),
+                },
+                actor,
+            )
+            .await?;
+        // A correction can swap who is buying, and the labels move with it.
+        self.sync_party_names(deal_id, &buyer, &seller).await;
+        Ok(result)
     }
 
     /// `same_device` is asserted by the client, and cannot be verified from

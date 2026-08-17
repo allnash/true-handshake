@@ -78,21 +78,24 @@ export default function Start() {
         <p className="font-display text-base text-paper">How it works</p>
         <ol className="list-decimal space-y-1.5 pl-5">
           <li>
-            You each say who you are. The witness works out which voice is which,
-            and you confirm it.
+            Press start and talk. Say your names near the beginning —{" "}
+            <em>“I'm Stella”</em>, <em>“this is Nash”</em>.
           </li>
-          <li>Talk. Every price named gets written down, in order, in your words.</li>
           <li>
-            You both confirm what it heard. Only then is the agreement frozen,
-            hashed, and signed.
+            Press stop. The witness reads it back: every price named, in order,
+            in your own words, and who said what.
+          </li>
+          <li>
+            You both confirm it — or correct it. Only then is the agreement
+            frozen, hashed, and signed.
           </li>
           <li>
             The buyer funds escrow; the seller hands the item over; the buyer
             confirms. Funds release 24 hours later.
           </li>
           <li>
-            You each keep a receipt anyone can verify — including a fingerprint of
-            the recording it came from.
+            You each keep a receipt anyone can verify — including a fingerprint
+            of the recording it came from.
           </li>
         </ol>
       </div>
