@@ -136,28 +136,143 @@ Two design decisions worth knowing about:
 
 ---
 
-## Getting started
+## Getting it running
+
+### What you need
+
+| | Version | Notes |
+|---|---|---|
+| Rust | 1.83+ | `rustup` default toolchain is fine |
+| Node | 20+ | for the web app only |
+| Docker | any recent | just to run Postgres |
+
+No `sqlx-cli`, no `psql`, no global installs. Queries are built at runtime, so
+the workspace compiles without a database and migrations run on boot.
+
+### 1. Database
 
 ```bash
-# prerequisites: Rust 1.83+, Node 20+, Docker
+docker compose up -d          # Postgres 16 on :5433
+```
 
+Port **5433**, not 5432, so it never collides with a Postgres you already have.
+
+### 2. Configuration
+
+```bash
 cp .env.example .env
-docker compose up -d                      # Postgres on :5433
-cargo run -p th-api -- --generate-seed    # paste into TH_SIGNING_SEED
+cargo run -p th-api -- --generate-seed     # prints TH_SIGNING_SEED=…
+```
 
-cargo test --workspace                    # 55 tests, no database needed
-cargo run -p th-api                        # :8080, migrations run on boot
+Paste that seed into `.env`, and add an Anthropic API key:
 
+| Variable | Required? | What happens without it |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | recommended | Falls back to an **offline witness** that scans for numbers and cannot understand a conversation. The UI works; the witness does not. It says so on every reading it produces. |
+| `TH_SIGNING_SEED` | recommended | The server mints an ephemeral key and warns you. Receipts signed by that process stop verifying when it restarts. |
+| `DATABASE_URL` | no | Defaults to the docker-compose instance. |
+| `TH_MEDIATOR_TOKEN` | no | Leave empty to disable the dispute-resolution endpoint. |
+
+`.env` is gitignored. Nothing in the repo contains a key.
+
+### 3. Run it
+
+```bash
+cargo run -p th-api                        # :8080 — migrations run on boot
 cd web && npm install && npm run dev       # :5173
 ```
 
-Set `ANTHROPIC_API_KEY` to use the real witness (Claude Opus 5). Without it the
-server falls back to an **offline witness** that scans transcripts for numbers
-and cannot understand a conversation — enough to walk the UI, useless as a
-witness, and it says so on every reading it produces.
+Open **http://localhost:5173**. Leave both running; the API also runs the timer
+worker in-process, which is what makes the 24-hour hold real rather than
+decorative.
 
-Without `TH_SIGNING_SEED` the server mints an ephemeral key and warns that every
-receipt it signs will stop verifying after a restart.
+### 4. Check it works
+
+```bash
+cargo test --workspace     # 57 tests, no database needed
+```
+
+The stronger check is a receipt verifying against the published spec — open any
+completed deal at `/v/{id}` and the page will hash the whole chain in your
+browser and check the Ed25519 signature against
+`/.well-known/true-handshake-keys.json`.
+
+---
+
+## Using it
+
+The whole flow runs in **one browser window** — two people, one microphone.
+That is the normal case: you are standing together.
+
+1. **Begin a handshake** → **Start listening**. Allow the microphone; one prompt
+   covers both the recording and the recognizer.
+2. **Say your names near the beginning** — *"Hey, I'm Stella"*, *"this is Nash"*.
+   That is how the witness works out who is buying. Then just talk; there is
+   nothing to tap while you negotiate.
+3. **Stop listening** → **Have the witness read it.** Takes roughly 10–15
+   seconds; it is reading at high effort.
+4. You land on the deal as one party. Read the ladder, check the witness's
+   caveats, and **confirm** — or correct the price, or swap the roles if it read
+   them backwards. Either correction withdraws both confirmations.
+5. A full-screen **"Hand the phone to Stella"** appears. Pass it over, tap
+   **I'm Stella**, confirm again. Terms freeze, hash, and sign.
+6. Fund escrow → photograph the handoff → confirm receipt → the 24-hour hold
+   runs → funds release.
+
+A **"Viewing as Nash · Switch to Stella"** bar is available throughout.
+
+Once you separate, the deal screen offers a link for the other party so they can
+carry on from their own phone. It carries a per-deal token; there are no
+accounts.
+
+**Two devices instead?** Send that link. A receipt records which way it happened —
+confirmations made on one device are labelled as such rather than passed off as
+two independent ones.
+
+### Trying it without talking
+
+Every step is reachable over HTTP, so the whole lifecycle can be driven with
+`curl` — useful for testing the timer, disputes, or refunds without holding a
+conversation. Post an unattributed transcript to
+`/v1/sessions/{id}/utterances`, then `/propose`, and carry on from there.
+
+To watch the 24-hour hold fire without waiting a day, wind its timer back:
+
+```sql
+update scheduled_tasks set due_at = now() - interval '25 hours'
+where deal_id = '<id>' and kind = 'release_hold' and state = 'pending';
+```
+
+The worker picks it up within about five seconds, logs that it fired late, and
+releases the funds.
+
+---
+
+## When something looks wrong
+
+**A 500 in the browser, with nothing in the API log.** The Vite dev proxy returns
+500 when it cannot reach the API — almost always because `th-api` is restarting.
+The app itself never returns 500: storage failures are 503, witness failures 502.
+
+**"Microphone permission was denied", or no recording at all.** Recording needs a
+secure context. `localhost` counts; reaching the dev server from a phone on your
+LAN by IP does not. Use a tunnel or `vite --https`.
+
+**No speech appears, but the recording works.** Firefox has no Web Speech API.
+Chrome and Safari do. You can type lines by hand in the meantime — the witness
+reads text, and the audio is kept either way.
+
+**The witness returns nonsense like `item` for the item name.** That is the
+offline witness; `ANTHROPIC_API_KEY` is not set or has expired.
+
+**`witness_unavailable` (502).** The key expired or the call failed. The deal is
+untouched — nothing was attested.
+
+**Port 5433 already in use.** Change the host port in `docker-compose.yml` and
+the port in `DATABASE_URL` to match.
+
+**Receipts stopped verifying after a restart.** `TH_SIGNING_SEED` was not set, so
+the previous run signed with an ephemeral key.
 
 ---
 
